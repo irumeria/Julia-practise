@@ -1,4 +1,3 @@
-using OMEinsum
 using Plots
 using LinearAlgebra
 
@@ -81,7 +80,7 @@ function get_diffraction_recip_point(recip_points, primitive_coords, electron_in
     for (hkl, rp) in recip_points
         hkl_array = [parse(Int, s) for s in split(hkl, ",")]
         # if abs(dot(hkl_array, electron_income_direction)) < 1e-6 # TODO: parallel or vertical ?
-        if true
+        if true 
             strength = diffaction_strength(primitive_coords, rp) # TODO: if I need to abs.(rp) ?
             if abs(strength) < 1e-6
                 continue
@@ -111,13 +110,15 @@ electron_income_direction = [1, 0, 0]
 )
 
 
+# selected the hkl with l=0
 reserved_indexs = vec(mapslices(col -> abs(col[3]) < 1e-6, diffraction_point, dims=2))
 diffraction_point = diffraction_point[reserved_indexs, :]
 strengths = strengths[reserved_indexs, :]
+
 p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
     markersize=1.2 .* strengths, markercolor=:blue, markerstrokewidth=0, legend=false)
-
 
 title!(p, "electron diffraction partarn, BCC alpha=" * string(alpha))
 
 savefig(p, "BCC with alpha=" * string(alpha) * ".png")
+
