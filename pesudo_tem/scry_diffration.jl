@@ -35,7 +35,7 @@ function expandLattice(
     cell::Matrix,
     factor::Int;
     include_negative=true,
-    exclude_origin=true,
+    exclude_origin=false,
     in_hkl=true
 )
     start_factor = include_negative ? -factor : 0
@@ -61,7 +61,10 @@ function expandLattice(
 end
 
 function diffaction_strength(coords::Matrix, v::Vector)
-    # Calculate the 'S_G'
+    # Calculate the 'S_G' * distantce_to_center
+    # assume that the strength decay in normal distribution
+    sigma = 0.5
+    distance_factor = 1 / sigma * exp(-sum(v.^2)/2*sigma^2)
     get_sqr_complex(
         sum([
             exp(
@@ -70,24 +73,20 @@ function diffaction_strength(coords::Matrix, v::Vector)
             )
             for pindex = 1:size(coords)[1]
         ])
-    )
+    ) * distance_factor
 end
 
 function get_diffraction_recip_point(recip_points, primitive_coords, electron_income_direction)
-
     diffraction_recip_point = []
     strengths = []
     for (hkl, rp) in recip_points
         hkl_array = [parse(Int, s) for s in split(hkl, ",")]
-        # if abs(dot(hkl_array, electron_income_direction)) < 1e-6 # TODO: parallel or vertical ?
-        if true 
-            strength = diffaction_strength(primitive_coords, rp) # TODO: if I need to abs.(rp) ?
-            if abs(strength) < 1e-6
-                continue
-            end
-            diffraction_recip_point = [diffraction_recip_point; reshape(rp, 1, length(rp))]
-            strengths = [strengths; strength]
+        strength = diffaction_strength(primitive_coords, hkl_array) # TODO: if I need to abs.(hkl) ?
+        if abs(strength) < 1e-6
+            continue
         end
+        diffraction_recip_point = [diffraction_recip_point; reshape(rp, 1, length(rp))]
+        strengths = [strengths; strength]
     end
     diffraction_recip_point, strengths
 end
@@ -99,26 +98,25 @@ electron_income_direction = [1, 0, 0]
 
 # println(latpoints)
 @show recip_cell = lattice2recip(cell)
-@show diffaction_strength(primitive_coords, [1, 0, 1])
+@show diffaction_strength(primitive_coords, [2, 0, 2])
 
-@show recip_points = expandLattice(recip_cell, 2)
+recip_points = expandLattice(recip_cell, 2)
 
-@show diffraction_point, strengths = get_diffraction_recip_point(
+diffraction_point, strengths = get_diffraction_recip_point(
     recip_points,
     primitive_coords,
     electron_income_direction
 )
 
-
 # selected the hkl with l=0
 reserved_indexs = vec(mapslices(col -> abs(col[3]) < 1e-6, diffraction_point, dims=2))
 diffraction_point = diffraction_point[reserved_indexs, :]
-strengths = strengths[reserved_indexs, :]
+@show strengths = strengths[reserved_indexs, :]
 
 p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
     markersize=1.2 .* strengths, markercolor=:blue, markerstrokewidth=0, legend=false)
 
-title!(p, "electron diffraction partarn, BCC alpha=" * string(alpha))
+title!(p, "electron diffraction partarn, FCC alpha=" * string(alpha))
 
 savefig(p, "BCC with alpha=" * string(alpha) * ".png")
 
