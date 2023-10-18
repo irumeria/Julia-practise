@@ -63,7 +63,7 @@ end
 function diffaction_strength(coords::Matrix, v::Vector)
     # Calculate the 'S_G' * distantce_to_center
     # assume that the strength decay in normal distribution
-    sigma = 0.5
+    sigma = 0.4 # this parameter simulates the size of Ewald's sphere
     distance_factor = 1 / sigma * exp(-sum(v .^ 2) / 2 * sigma^2)
     get_sqr_complex(
         sum([
@@ -76,9 +76,14 @@ function diffaction_strength(coords::Matrix, v::Vector)
     ) * distance_factor
 end
 
-function get_diffraction_recip_point(recip_points, primitive_coords, electron_income_direction)
+function get_diffraction_recip_point(
+        recip_points, 
+        primitive_coords
+    )
+
     diffraction_recip_point = []
     strengths = []
+    hkls = []
     for (hkl, rp) in recip_points
         hkl_array = [parse(Int, s) for s in split(hkl, ",")]
         strength = diffaction_strength(primitive_coords, hkl_array) # TODO: if I need to abs.(hkl) ?
@@ -87,34 +92,36 @@ function get_diffraction_recip_point(recip_points, primitive_coords, electron_in
         end
         diffraction_recip_point = [diffraction_recip_point; reshape(rp, 1, length(rp))]
         strengths = [strengths; strength]
+        hkls = [hkls; hkl]
     end
-    diffraction_recip_point, strengths
+    diffraction_recip_point, strengths, hkls
 end
+
 
 alpha = 0.287
 cell = alpha .* BCC
 primitive_coords = BCC_BASIC_PRIMITIVE_COORDINATE
-electron_income_direction = [1, 0, 0]
 
 # println(latpoints)
 @show recip_cell = lattice2recip(cell)
-@show diffaction_strength(primitive_coords, [2, 0, 2])
+@show diffaction_strength(primitive_coords, [2, 0, 2]) # for test
 
 recip_points = expandLattice(recip_cell, 2)
 
-diffraction_point, strengths = get_diffraction_recip_point(
+diffraction_point, strengths, hkls = get_diffraction_recip_point(
     recip_points,
-    primitive_coords,
-    electron_income_direction
+    primitive_coords
 )
 
 # selected the hkl with l=0
 reserved_indexs = vec(mapslices(col -> abs(col[3]) < 1e-6, diffraction_point, dims=2))
 diffraction_point = diffraction_point[reserved_indexs, :]
-@show strengths = strengths[reserved_indexs, :]
+strengths = strengths[reserved_indexs, :]
+hkls = hkls[reserved_indexs, :]
 
 p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
-    markersize=1.2 .* strengths, markercolor=:blue, markerstrokewidth=0, legend=false)
+    markersize=strengths, markercolor=:blue, markerstrokewidth=0, legend=false,
+    series_annotations = text.(hkls, :bottom))
 
 title!(p, "electron diffraction partarn, BCC alpha=" * string(alpha))
 
