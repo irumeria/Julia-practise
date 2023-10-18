@@ -64,7 +64,7 @@ function diffaction_strength(coords::Matrix, v::Vector)
     # Calculate the 'S_G' * distantce_to_center
     # assume that the strength decay in normal distribution
     sigma = 0.5
-    distance_factor = 1 / sigma * exp(-sum(v.^2)/2*sigma^2)
+    distance_factor = 1 / sigma * exp(-sum(v .^ 2) / 2 * sigma^2)
     get_sqr_complex(
         sum([
             exp(
