@@ -116,7 +116,7 @@ diffraction_point = diffraction_point[reserved_indexs, :]
 p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
     markersize=1.2 .* strengths, markercolor=:blue, markerstrokewidth=0, legend=false)
 
-title!(p, "electron diffraction partarn, FCC alpha=" * string(alpha))
+title!(p, "electron diffraction partarn, BCC alpha=" * string(alpha))
 
 savefig(p, "BCC with alpha=" * string(alpha) * ".png")
 
