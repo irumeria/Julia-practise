@@ -1,1 +1,1 @@
-## Julia project for practising
+## Julia scripts for practising computing methods in physic
