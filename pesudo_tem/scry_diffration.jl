@@ -68,7 +68,7 @@ function diffaction_strength(coords::Matrix, v::Vector)
     get_sqr_complex(
         sum([
             exp(
-                im * 2 * pi *
+                 - im * 2 * pi *
                 sum(coords[pindex, :] .* v)
             )
             for pindex = 1:size(coords)[1]
@@ -104,7 +104,7 @@ primitive_coords = BCC_BASIC_PRIMITIVE_COORDINATE
 
 # println(latpoints)
 @show recip_cell = lattice2recip(cell)
-@show diffaction_strength(primitive_coords, [2, 0, 2]) # for test
+@show diffaction_strength([1 1 1], [2, 0, 2]) # for test
 
 recip_points = expandLattice(recip_cell, 2)
 
@@ -114,7 +114,8 @@ diffraction_point, strengths, hkls = get_diffraction_recip_point(
 )
 
 # selected the hkl with l=0
-reserved_indexs = vec(mapslices(col -> abs(col[3]) < 1e-6, diffraction_point, dims=2))
+# reserved_indexs = vec(mapslices(col -> abs(col[3]) < 1e-6 , diffraction_point, dims=2))
+@show reserved_indexs = map(hkl-> [parse(Int, s) for s in split(hkl, ",")][3] == 0,hkls)
 diffraction_point = diffraction_point[reserved_indexs, :]
 strengths = strengths[reserved_indexs, :]
 hkls = hkls[reserved_indexs, :]
@@ -123,7 +124,7 @@ p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
     markersize=strengths, markercolor=:blue, markerstrokewidth=0, legend=false,
     series_annotations = text.(hkls, :bottom))
 
-title!(p, "electron diffraction partarn, BCC alpha=" * string(alpha))
+title!(p, "diffraction partarn in plane (h,l,k=0) , BCC alpha=" * string(alpha))
 
 savefig(p, "BCC with alpha=" * string(alpha) * ".png")
 
