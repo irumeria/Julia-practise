@@ -97,10 +97,16 @@ function get_diffraction_recip_point(
     diffraction_recip_point, strengths, hkls
 end
 
-
-alpha = 0.287
-cell = alpha .* BCC
-primitive_coords = BCC_BASIC_PRIMITIVE_COORDINATE
+ctype = "BCC"
+if ctype == "BCC"
+    alpha = 0.287
+    cell = alpha .* BCC
+    primitive_coords = BCC_BASIC_PRIMITIVE_COORDINATE
+elseif ctype == "FCC"
+    alpha = 0.36
+    cell = alpha .* FCC
+    primitive_coords =FCC_BASIC_PRIMITIVE_COORDINATE    
+end
 
 # println(latpoints)
 @show recip_cell = lattice2recip(cell)
@@ -120,11 +126,17 @@ diffraction_point = diffraction_point[reserved_indexs, :]
 strengths = strengths[reserved_indexs, :]
 hkls = hkls[reserved_indexs, :]
 
-p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
+p = scatter(diffraction_point[:, 1], diffraction_point[:, 2], diffraction_point[:, 3],
+    markersize=strengths, markercolor=:blue, markerstrokewidth=0, legend=false)
+
+title!(p, "diffraction partarn in plane (h,l,k=0) , "*ctype*" alpha=" * string(alpha))
+
+savefig(p, ctype*" with alpha=" * string(alpha) * ".png")
+
+p = scatter(diffraction_point[:, 1], diffraction_point[:, 2], 
     markersize=strengths, markercolor=:blue, markerstrokewidth=0, legend=false,
-    series_annotations = text.(hkls, :bottom))
+    series_annotations = text.(hkls))
 
-title!(p, "diffraction partarn in plane (h,l,k=0) , BCC alpha=" * string(alpha))
+title!(p, "diffraction on plane (h,l,k=0) projection on z-plane, BCC alpha=" * string(alpha))
 
-savefig(p, "BCC with alpha=" * string(alpha) * ".png")
-
+savefig(p, ctype*" projection with alpha=" * string(alpha) * ".png")
