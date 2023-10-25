@@ -1,3 +1,4 @@
+using LinearAlgebra
 
 const global FCC_BASIC_PRIMITIVE_COORDINATE = [0 0 0; 0 1/2 1/2; 1/2 0 1/2; 1/2 1/2 0]
 
@@ -18,6 +19,21 @@ const global FCC_COORDINATE = [
     1/2 1 1/2;
     1/2 1/2 1/2
 ]
+
+function lattice2recip(lattice_vectors::Matrix)
+    reciprocal_lattice = zeros(3, 3)
+    detlattice = det(lattice_vectors)
+    reciprocal_lattice[:, 1] = 2 * pi *
+                               cross(lattice_vectors[:, 2], lattice_vectors[:, 3]) /
+                               detlattice
+    reciprocal_lattice[:, 2] = 2 * pi *
+                               cross(lattice_vectors[:, 3], lattice_vectors[:, 1]) /
+                               detlattice
+    reciprocal_lattice[:, 3] = 2 * pi *
+                               cross(lattice_vectors[:, 1], lattice_vectors[:, 2]) /
+                               detlattice
+    reciprocal_lattice
+end
 
 function expandLattice(
     cell::Matrix,
@@ -47,3 +63,27 @@ function expandLattice(
     end
     expanded_lat
 end
+
+function expandedCoords(
+        posi_array::Matrix,
+        factor::Int;
+        include_negative=false
+    )
+    expanded_posi = copy(posi_array)
+    start_factor = include_negative ? -factor : 0
+    for efx = start_factor:factor
+        for efy = start_factor:factor
+            for efz = start_factor:factor
+                new_posi = zeros(size(posi_array))
+                new_posi[:,1] = posi_array[:, 1] .+ efx
+                new_posi[:,2] = posi_array[:, 2] .+ efy
+                new_posi[:,3] = posi_array[:, 3] .+ efz
+                expanded_posi = [expanded_posi; new_posi]
+            end
+        end
+    end
+    expanded_posi
+
+end
+
+# @show size(expandedCoords(FCC_COORDINATE, 1))
