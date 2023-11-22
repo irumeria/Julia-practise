@@ -64,7 +64,7 @@ function expandLattice(
     expanded_lat
 end
 
-function expandedCoords(
+function expandCoords(
         posi_array::Matrix,
         factor::Int;
         include_negative=false
@@ -82,7 +82,7 @@ function expandedCoords(
             end
         end
     end
-    expanded_posi
+    unique(expanded_posi, dims = 1)
 
 end
 

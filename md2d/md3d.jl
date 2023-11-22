@@ -45,7 +45,7 @@ function _LJFroce(
 )
 	# default: return the force of the atom in posi_1
 	posi_delta = posi_1 - posi_2
-	for i in 1:length(posi_delta)
+	for i = eachindex(posi_delta)
 		if abs(posi_delta[i]) > 0.5 * cell_length
 			posi_delta[i] = posi_delta[i] - sign(cell_length, posi_delta[i])
 		end
@@ -101,18 +101,13 @@ end
 function do_FCC_simulation(steps::Int)
 
 	d = Normal()
-	dt = 0.005
+	dt = 0.000005
 	half_dt = dt * 0.5
 
 	lattice_size = 2
 	cell_length = lattice_size + 0.2
 
-
-	fcc = expandedCoords(FCC_COORDINATE, lattice_size)
-
-	@show size(fcc)
-	fcc = unique(fcc, dims = 1)
-	@show size(fcc)
+	fcc = expandCoords(FCC_COORDINATE, lattice_size)
 
 	fcc = map(e -> e |> float, fcc)
 	sys = SystemState(
@@ -122,7 +117,7 @@ function do_FCC_simulation(steps::Int)
 		cell_length,
 	)
 
-	ep = 1e-2
+	ep = 1e-5
 	sigma = 1 / sqrt(2)
 	rcut = cell_length / 2.1
 

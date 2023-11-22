@@ -140,3 +140,4 @@ p = scatter(diffraction_point[:, 1], diffraction_point[:, 2],
 title!(p, "diffraction on plane (h,l,k=0) projection on z-plane, BCC alpha=" * string(alpha))
 
 savefig(p, ctype*" projection with alpha=" * string(alpha) * ".png")
+
